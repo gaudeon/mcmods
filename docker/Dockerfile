@@ -10,8 +10,12 @@ ENV MC_WORK /minecraft
 WORKDIR ${MC_WORK}
 
 # canary mod canarymod.net
-# ADD https://canarymod.net/releases/CanaryMod-1.8.0-1.2.0-RC1.jar ${MC_OPT}/server.jar
-ADD server/CanaryMod-1.8.0-1.2.0-RC1.jar ${MC_OPT}/server.jar
+# ADD https://canarymod.net/releases/CanaryMod-1.8.0-1.2.0-RC1.jar ${MC_OPT}/canarymod.jar
+ADD server/CanaryMod-1.8.0-1.2.0-RC1.jar ${MC_OPT}/canarymod.jar
+
+# mqtt
+# ADD http://scriptcraftjs.org/download/extras/mqtt/sc-mqtt.jar ${MC_OPT}/sc-mqtt.jar
+ADD server/sc-mqtt.jar ${MC_OPT}/sc-mqtt.jar
 
 # scriptcraft
 # ADD http://scriptcraftjs.org/download/latest/scriptcraft-3.1.12/scriptcraft.jar ${MC_OPT}/plugins/scriptcraft.jar
@@ -31,7 +35,7 @@ VOLUME ["/minecraft"]
 
 # copy opt to shared volume
 RUN /bin/sh -c "echo 'rsync -a ${MC_OPT}/ ${MC_WORK}/' >> /usr/bin/mcserver"
-RUN /bin/sh -c "echo 'java -Xmx4096M -jar ${MC_WORK}/server.jar' >> /usr/bin/mcserver"
+RUN /bin/sh -c "echo 'java -Xmx4096M -jar ${MC_WORK}/canarymod.jar' >> /usr/bin/mcserver"
 RUN /bin/sh -c "chmod +x /usr/bin/mcserver"
 
 # start the server
