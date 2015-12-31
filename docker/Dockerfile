@@ -34,7 +34,7 @@ EXPOSE 25565
 VOLUME ["/minecraft"]
 
 # copy opt to shared volume
-RUN /bin/sh -c "echo 'rsync -a ${MC_OPT}/ ${MC_WORK}/' >> /usr/bin/mcserver"
+RUN /bin/sh -c "echo 'rsync -a --ignore-existing ${MC_OPT}/ ${MC_WORK}/' >> /usr/bin/mcserver"
 RUN /bin/sh -c "echo 'java -Xmx4096M -jar ${MC_WORK}/canarymod.jar' >> /usr/bin/mcserver"
 RUN /bin/sh -c "chmod +x /usr/bin/mcserver"
 
