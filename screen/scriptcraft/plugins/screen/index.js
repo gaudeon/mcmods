@@ -1,3 +1,1 @@
-// exports.Screen = require('screen');
-
-console.log('TEST SCREEN!!!!!');
+exports.Screen = require('screen');
