@@ -20,6 +20,7 @@ ADD plugins/scriptcraft-3.1.12.jar ${MC_OPT}/plugins/scriptcraft.jar
 
 # default minecraft server configuration
 ADD config/server.properties ${MC_OPT}/server.properties
+ADD config/permissions.yml ${MC_OPT}/permissions.yml
 RUN /bin/sh -c 'echo "eula=true" > ${MC_OPT}/eula.txt'
 
 # external port access
