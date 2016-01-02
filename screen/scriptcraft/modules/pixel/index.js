@@ -1,5 +1,6 @@
 var blocks = require('blocks'),
-    colors = require('block-colors');
+    colors = require('block-colors'),
+    debug  = require('debug');
 
 /*
  * Pixel
@@ -12,10 +13,7 @@ var blocks = require('blocks'),
 var Pixel = function (x, y, z, sender) {
     var self    = {};
     self.errors = [];
-    self.color  = {
-        id   : colors.black,
-        name : 'black'
-    };
+    self.color  = 'black';
 
     // validation and error handling
     self.error = function(msg) {
@@ -51,15 +49,22 @@ var Pixel = function (x, y, z, sender) {
 
         if (__plugin.canary) {
             var BlockType = Packages.net.canarymod.api.world.blocks.BlockType;
-            block.type = BlockType.fromId( blocks.wool[ self.color.name ] );
+            block.type = BlockType.fromId( blocks.wool[ self.color ] );
+            block.update();
         }
         else if (__plugin.bukkit) {
-            //var wool = Packages.org.bukkit.material.Wool();
-            //console.log(wool);
-            console.log(Packages);
-            for (var k in Packages.org.bukkit.material) {
-                console.log(k);
-            }
+            block.setType( Packages.org.bukkit.Material.WOOL ); // Set the Material
+
+            var dye_colors = require('bukkit/dye-colors');
+            var bkWool     = Packages.org.bukkit.material.Wool;
+            var wool_block = new bkWool( dye_colors[ self.color ] ); // New MaterialData
+
+            // Get the BlockState
+            var state = block.getState();
+
+            // Set the MaterialData to that of a Wool block of the desired color then call for an update
+            state.setData(wool_block);
+            state.update();
         }
 
         return block;

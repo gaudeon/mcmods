@@ -13,7 +13,7 @@ var bkBlue      = Packages.org.bukkit.DyeColor.BLUE;
 var bkBrown     = Packages.org.bukkit.DyeColor.BROWN;
 var bkGreen     = Packages.org.bukkit.DyeColor.GREEN;
 var bkRed       = Packages.org.bukkit.DyeColor.RED;
-var bkBlack     = Packages.org.bukkit.DyeColor.Black;
+var bkBlack     = Packages.org.bukkit.DyeColor.BLACK;
 
 var dye_colors = {
   white: bkWhite,
