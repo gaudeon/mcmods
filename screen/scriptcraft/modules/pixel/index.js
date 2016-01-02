@@ -13,7 +13,7 @@ var blocks = require('blocks'),
 var Pixel = function (x, y, z, sender) {
     var self    = {};
     self.errors = [];
-    self.color  = 'black';
+    var color   = 'black';
 
     // validation and error handling
     self.error = function(msg) {
@@ -49,7 +49,7 @@ var Pixel = function (x, y, z, sender) {
 
         if (__plugin.canary) {
             var BlockType = Packages.net.canarymod.api.world.blocks.BlockType;
-            block.type = BlockType.fromId( blocks.wool[ self.color ] );
+            block.type = BlockType.fromId( blocks.wool[ color ] );
             block.update();
         }
         else if (__plugin.bukkit) {
@@ -57,7 +57,7 @@ var Pixel = function (x, y, z, sender) {
 
             var dye_colors = require('bukkit/dye-colors');
             var bkWool     = Packages.org.bukkit.material.Wool;
-            var wool_block = new bkWool( dye_colors[ self.color ] ); // New MaterialData
+            var wool_block = new bkWool( dye_colors[ color ] ); // New MaterialData
 
             // Get the BlockState
             var state = block.getState();
@@ -70,7 +70,26 @@ var Pixel = function (x, y, z, sender) {
         return block;
     };
 
-    /* get the world no matter the context */
+    // set pixel color
+    self.setColor = function(c) {
+        if ("undefined" === typeof(colors[ c ])) {
+            self.error('c is not a valid color');
+            return;
+        }
+
+        color = c;
+
+        self.render();
+
+        return color;
+    };
+
+    // get pixel color
+    self.getColor = function() {
+        return color;
+    };
+
+    // get the world no matter the context
     function getWorld() {
         if (sender.toString().match(/Player/)) {
             return sender.world;
