@@ -11,9 +11,10 @@ var blocks = require('blocks'),
  *  z      - z coordinate of pixel
  */
 var Pixel = function (x, y, z, sender) {
-    var self    = {};
-    self.errors = [];
-    var color   = 'black';
+    var self     = {};
+    self.errors  = [];
+    var color    = 'black';
+    var is_hidden = true;
 
     // validation and error handling
     self.error = function(msg) {
@@ -42,7 +43,7 @@ var Pixel = function (x, y, z, sender) {
     }
 
     // pixel rendering
-    self.render = function() {
+    self.show = function() {
         var world = getWorld();
 
         var block = world.getBlockAt( x, y, z );
@@ -67,6 +68,27 @@ var Pixel = function (x, y, z, sender) {
             state.update();
         }
 
+        is_hidden = false;
+
+        return block;
+    };
+
+    // return the pixel back to air
+    self.hide = function() {
+        var world = getWorld();
+
+        var block = world.getBlockAt( x, y, z );
+
+        if (__plugin.canary) {
+            var BlockType = Packages.net.canarymod.api.world.blocks.BlockType;
+            block.type = BlockType.fromId( blocks.air );
+        }
+        else if (__plugin.bukkit) {
+            block.setType( Packages.org.bukkit.Material.AIR ); // Set the Material
+        }
+
+        is_hidden = true;
+
         return block;
     };
 
@@ -79,7 +101,9 @@ var Pixel = function (x, y, z, sender) {
 
         color = c;
 
-        self.render();
+        if (! is_hidden) {
+            self.show();
+        }
 
         return color;
     };
