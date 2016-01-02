@@ -1,4 +1,5 @@
-var blocks = require('blocks');
+var blocks = require('blocks'),
+    pixel  = require('pixel');
 
 /*
  * Screen
@@ -13,6 +14,7 @@ var blocks = require('blocks');
 var Screen = function (x, y, z, width, height, sender) {
     var self = {};
     self.errors = [];
+    var pixels = [];
 
     self.error = function(msg) {
         self.errors.push(msg);
@@ -39,62 +41,27 @@ var Screen = function (x, y, z, width, height, sender) {
         self.error('width is required and should be a number');
     }
 
-    console.log(sender.toString().match(/Player/) ? 'yes' : 'no');
-    console.log(typeof sender);
-    console.log(getWorld());
-
     if (self.errors.length > 0) {
         return self;
     }
 
-    self.render = function() {
-        var world = getWorld();
+    init();
 
-        console.log(blocks.wool.black);
+    // TODO:
+    // - build a delete screen function (sets pixels to air - need a delete function for the pixel to do this)
+    // - build a way to choose if we are using x or z as the facing
+    // - build a way to access each pixel by index or by x/y coords
 
-        //putBlock(0, 6, 0, blocks.wool.black, null, world, false);
-        var block = world.getBlockAt( 0, 6, 0 );
+    function init() {
+        for (var w = 0; w < width; w++) {
+            for (var h = 0; h < height; h++) {
+                var p = new pixel(x + w, y + h, z, sender);
 
-        block.setType(Packages.org.bukkit.Material.WOOL);
-    };
+                p.render();
 
-    /* get the world no matter the context */
-    function getWorld() {
-        if (sender.toString().match(/Player/)) {
-            return sender.world;
-        }
-        else {
-            return sender.getServer().getWorlds().get(0);
-        }
-    }
-
-    /*
-    low-level function to place a block in the world - all drone methods which
-    place blocks ultimately invoke this function.
-   */
-    function putBlock( x, y, z, blockId, metadata, world, update ) {
-        if ( typeof metadata == 'undefined' ) {
-            metadata = 0;
-        }
-        var block = world.getBlockAt( x, y, z );
-
-        if (__plugin.canary) {
-            var BlockType = Packages.net.canarymod.api.world.blocks.BlockType;
-            block.type = BlockType.fromId(blockId);
-            var applyProperties = require('blockhelper').applyProperties;
-            applyProperties(block, metadata);
-            if (typeof update === 'undefined'){
-                update = true;
-            }
-            if (update){
-                block.update();
+                pixels.push(p);
             }
         }
-        if (__plugin.bukkit) {
-            block.setTypeIdAndData( blockId, metadata, false );
-            block.data = metadata;
-        }
-        return block;
     }
 
     return self;
