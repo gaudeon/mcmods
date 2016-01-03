@@ -83,26 +83,11 @@ var Screen = function (x, y, z, width, height, sender) {
         return pixels[index];
     }
 
-    self.test = function() {
-        var clrs = ['red','green','blue'];
-        var ci   = 0;
-
-        for (var cnt = 0; cnt < 3; cnt++) {
-            for (var p = 0; p < pixels.length; p++) {
-                self.pixelAt(p).setColor(clrs[ci]);
-            }
-            ci += 1;
-            ci = ci >= clrs.length ? 0 : ci;
-        }
-    };
-
-    // TODO:
-    // - build a delete screen function (sets pixels to air - need a delete function for the pixel to do this)
-    // - build a way to choose if we are using x or z as the facing
-    // - build a way to access each pixel by index or by x/y coords
+    // NOTE: when changing pixel color delay your loops for at least 65 milliseconds (use utils.foreach)
 
     function init() {
-        for (var h = 0; h < height; h++) {
+        // as the screen is created the position (0,0) is the top left of the screen
+        for (var h = height - 1; h >= 0; h--) {
             for (var w = 0; w < width; w++) {
                 var p = new pixel(x + w, y + h, z, sender);
 
