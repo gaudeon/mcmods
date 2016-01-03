@@ -5,13 +5,15 @@ var blocks = require('blocks'),
  * Screen
  *
  * Parameters:
- *  x      - x coordinate of bottom left corner block
- *  y      - y coordinate of bottom left corner block
- *  z      - z coordinate of bottom left corner block
- *  width  - screen width
- *  height - screen height
+ *  x           - x coordinate of bottom left corner block
+ *  y           - y coordinate of bottom left corner block
+ *  z           - z coordinate of bottom left corner block
+ *  width       - screen width
+ *  height      - screen height
+ *  orientation - either along the 'x' or 'z' axis
+ *  sender      - who is calling this
  */
-var Screen = function (x, y, z, width, height, sender) {
+var Screen = function (x, y, z, width, height, orientation, sender) {
     var self = {};
     self.errors = [];
     var pixels = [];
@@ -21,24 +23,32 @@ var Screen = function (x, y, z, width, height, sender) {
         console.error('modules/screen - ' + msg);
     };
 
-    if (typeof x !== "number") {
+    if ("number" !== typeof x) {
         self.error('x is required and should be a number');
     }
 
-    if (typeof y !== "number") {
+    if ("number" !== typeof y) {
         self.error('y is required and should be a number');
     }
 
-    if (typeof z !== "number") {
+    if ("number" !== typeof z) {
         self.error('z is required and should be a number');
     }
 
-    if (typeof width !== "number") {
+    if ("number" !== typeof width) {
         self.error('width is required and should be a number');
     }
 
-    if (typeof width !== "number") {
-        self.error('width is required and should be a number');
+    if ("number" !== typeof height) {
+        self.error('height is required and should be a number');
+    }
+
+    if ("undefined" === typeof orientation || (! orientation.toString().match(/-?x/) && ! orientation.toString().match(/-?z/))) {
+        orientation = 'x'; // default orientation to x
+    }
+
+    if ("undefined" === typeof sender) {
+        self.error('sender is required');
     }
 
     if (self.errors.length > 0) {
@@ -86,10 +96,30 @@ var Screen = function (x, y, z, width, height, sender) {
     // NOTE: when changing pixel color delay your loops for at least 65 milliseconds (use utils.foreach)
 
     function init() {
+        // generate a pixel creation function based on orientation so we don't run a switch statement for every pixel in the screen
+        var new_pixel;
+       
+        switch (orientation) {
+            case 'x':
+                new_pixel = function(x, y, z, w, h, sender) { return new pixel(x + w, y + h, z, sender); };
+                break;
+            case '-x':
+                new_pixel = function(x, y, z, w, h, sender) { return new pixel(x - w, y + h, z, sender); };
+                break;
+            case 'z':
+                new_pixel = function(x, y, z, w, h, sender) { return new pixel(x, y + h, z + w, sender); };
+                break;
+            case '-z':
+                new_pixel = function(x, y, z, w, h, sender) { return new pixel(x, y + h, z - w, sender); };
+                break;
+            default:
+                new_pixel = function(x, y, z, w, h, sender) { return new pixel(x + w, y + h, z, sender); };
+        }
+
         // as the screen is created the position (0,0) is the top left of the screen
         for (var h = height - 1; h >= 0; h--) {
             for (var w = 0; w < width; w++) {
-                var p = new pixel(x + w, y + h, z, sender);
+                var p = new_pixel(x, y, z, w, h, sender);
 
                 p.show();
 
