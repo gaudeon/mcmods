@@ -1,5 +1,7 @@
 var blocks = require('blocks'),
-    pixel  = require('pixel');
+    pixel  = require('pixel'),
+    utils  = require('utils'),
+    debug  = require('debug');
 
 /*
  * Screen
@@ -59,7 +61,7 @@ var Screen = function (x, y, z, width, height, orientation, sender) {
     init();
 
     // display something on the screen
-    self.display = function(source) {
+    self.display = function(source, callback) {
         if ("undefined" === typeof source || "undefined" === typeof source.typeof || ! source.typeof().match(/^(Frame|Movie)$/)) {
             self.error("Cannot display source, invalid source");
             return;
@@ -67,10 +69,10 @@ var Screen = function (x, y, z, width, height, orientation, sender) {
 
         switch(source.typeof()) {
             case 'Frame':
-                var frame = source.frameData();
-                for (var f = 0; f < frame.length; f++) {
-                    self.pixelAt(f).setColor(frame[f]);
-                }
+                displayFrame(source, callback);
+                break;
+            case 'Movie':
+                displayMovie(source, callback);
                 break;
         }
     };
@@ -119,6 +121,20 @@ var Screen = function (x, y, z, width, height, orientation, sender) {
     }
 
     // NOTE: when changing pixel color delay your loops for at least 65 milliseconds (use utils.foreach)
+    function displayMovie(movie, callback) {
+        if ("function" !== typeof callback) {
+            callback = function() {};
+        }
+
+        utils.foreach(movie.getFrames(), displayFrame, null, 65, callback);
+    }
+
+    function displayFrame(frame) {
+        var frameData = frame.frameData();
+        for (var f = 0; f < frameData.length; f++) {
+            self.pixelAt(f).setColor(frameData[f]);
+        }
+    }
 
     function init() {
         // generate a pixel creation function based on orientation so we don't run a switch statement for every pixel in the screen
