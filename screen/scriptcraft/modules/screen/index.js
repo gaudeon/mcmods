@@ -14,9 +14,10 @@ var blocks = require('blocks'),
  *  sender      - who is calling this
  */
 var Screen = function (x, y, z, width, height, orientation, sender) {
-    var self = {};
-    self.errors = [];
-    var pixels = [];
+    var self      = {};
+    self.errors   = [];
+    var pixels    = [];
+    var is_hidden = true;
 
     self.error = function(msg) {
         self.errors.push(msg);
@@ -57,11 +58,30 @@ var Screen = function (x, y, z, width, height, orientation, sender) {
 
     init();
 
+    // display something on the screen
+    self.display = function(source) {
+        if ("undefined" === typeof source || "undefined" === typeof source.typeof || ! source.typeof().match(/^(Frame|Movie)$/)) {
+            self.error("Cannot display source, invalid source");
+            return;
+        }
+
+        switch(source.typeof()) {
+            case 'Frame':
+                var frame = source.frameData();
+                for (var f = 0; f < frame.length; f++) {
+                    self.pixelAt(f).setColor(frame[f]);
+                }
+                break;
+        }
+    };
+
     // display the screem
     self.show = function() {
         for (var i = 0; i < pixels.length; i++) {
             pixels[i].show();
         }
+
+        is_hidden = false;
     }
 
     // remove the screen
@@ -69,7 +89,12 @@ var Screen = function (x, y, z, width, height, orientation, sender) {
         for (var i = 0; i < pixels.length; i++) {
             pixels[i].hide();
         }
+
+        is_hidden = true;
     };
+
+    // is_hidden accessor
+    self.isHidden = function() { return is_hidden; };
 
     // get pixel at a location
     self.pixelAt = function(x, y) {
@@ -98,7 +123,7 @@ var Screen = function (x, y, z, width, height, orientation, sender) {
     function init() {
         // generate a pixel creation function based on orientation so we don't run a switch statement for every pixel in the screen
         var new_pixel;
-       
+
         switch (orientation) {
             case 'x':
                 new_pixel = function(x, y, z, w, h, sender) { return new pixel(x + w, y + h, z, sender); };

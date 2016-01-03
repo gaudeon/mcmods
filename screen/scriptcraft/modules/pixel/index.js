@@ -92,11 +92,18 @@ var Pixel = function (x, y, z, sender) {
         return block;
     };
 
+    // is_hidden accessor
+    self.isHidden = function() { return is_hidden; };
+
     // set pixel color
     self.setColor = function(c) {
         if ("undefined" === typeof(colors[ c ])) {
-            self.error('c is not a valid color');
-            return;
+            c = id2color(c);
+
+            if ("undefined" === typeof(colors[ c ])) {
+                self.error('c is not a valid color');
+                return;
+            }
         }
 
         color = c;
@@ -112,6 +119,19 @@ var Pixel = function (x, y, z, sender) {
     self.getColor = function() {
         return color;
     };
+
+    // convert ids to color words
+    function id2color(id) {
+        id = new Number(id.toString());
+
+        for (var c in colors) {
+            if (colors[c] == id) {
+                return c;
+            }
+        }
+
+        return null;
+    }
 
     // get the world no matter the context
     function getWorld() {
