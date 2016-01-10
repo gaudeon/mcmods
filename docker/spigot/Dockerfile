@@ -18,6 +18,12 @@ ADD plugins/sc-mqtt.jar ${MC_OPT}/sc-mqtt.jar
 # scriptcraft
 ADD plugins/scriptcraft-3.1.12.jar ${MC_OPT}/plugins/scriptcraft.jar
 
+# no spawn chunks
+ADD plugins/NoSpawnChunks.jar ${MC_OPT}/plugins/NoSpawnChunks.jar
+
+# clear lag
+ADD plugins/Clearlag.jar ${MC_OPT}/plugins/Clearlag.jar
+
 # default minecraft server configuration
 ADD config/server.properties ${MC_OPT}/server.properties
 ADD config/permissions.yml ${MC_OPT}/permissions.yml
