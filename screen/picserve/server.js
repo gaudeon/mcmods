@@ -14,6 +14,8 @@ server.use(body_parser.json());
 server.use(body_parser.urlencoded({ extended: true}));
 
 server.get('/', function(req, res) {
+    res.json({
+    });
 });
 
 server.listen(PORT);
