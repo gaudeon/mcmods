@@ -12,10 +12,11 @@ GITDIR=""
 # List of files to cp from the minecraft server to the git repo
 FILES[0]="/scriptcraft/modules/bukkit/dye-colors.js"
 FILES[1]="/scriptcraft/modules/debug/index.js"
-FILES[2]="/scriptcraft/modules/frame/index.js"
-FILES[3]="/scriptcraft/modules/movie/index.js"
-FILES[4]="/scriptcraft/modules/pixel/index.js"
-FILES[5]="/scriptcraft/modules/screen/index.js"
+FILES[2]="/scriptcraft/modules/screen/frame.js"
+FILES[3]="/scriptcraft/modules/screen/movie.js"
+FILES[4]="/scriptcraft/modules/screen/pixel.js"
+FILES[5]="/scriptcraft/modules/screen/screen.js"
+FILES[6]="/scriptcraft/plugins/screen.js"
 
 
 if [ -d $MCDIR/scriptcraft ] && [ -d $GITDIR/scriptcraft ]; then

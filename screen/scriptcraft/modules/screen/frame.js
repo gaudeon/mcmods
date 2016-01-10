@@ -54,6 +54,20 @@ var Frame = function (data) {
         return self.setFrame(new_array);
     };
 
+    self.loadFromHTTP = function(url) {
+        var http = require('http/request');
+
+        http.request({
+            url: url,
+            method: 'GET',
+            params: {}
+        }, function (code, content) {
+            var pixels = eval(content); // content should be an json array of wool color bin ids
+
+            self.setFrameData(pixels);   
+        });
+    };
+
     // needed by screen display
     self.typeof = function() { return 'Frame'; };
 
