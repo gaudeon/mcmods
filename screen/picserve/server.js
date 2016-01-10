@@ -19,9 +19,7 @@ server.use(body_parser.urlencoded({ extended: true}));
 
 server.get('/', function(req, res) {
     get_pic(function(pixels) {
-        res.json({
-            'pixels': pixels
-        });
+        res.json(pixels);
     });
 });
 
