@@ -1,0 +1,21 @@
+{
+  "name": "picserve",
+  "version": "0.0.0",
+  "description": "serve picture data scriptcraft screen plugin can pull in and display",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Travis Chase <gaudeon@cpan.org>",
+  "license": "MIT",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-express": "^0.3.5"
+  },
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "connect-livereload": "^0.5.4",
+    "express": "^4.13.3"
+  }
+}
