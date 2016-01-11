@@ -231,23 +231,45 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
         for (var h = height - 1; h >= 0; h--) {
             for (var w = 0; w < width; w++) {
                 coords.push({'w':w, 'h':h});
+
+                // set size of self.pixels and default_frame_data
+                self.pixels.push(0);
+                default_frame_data.push(0);
             }
         }
+        // split the list into several
+        var group_size = 8;
+        var list_len   = Math.floor(coords.length / group_size);
+        var groups = [];
+        for(var l = 0; l < group_size - 1; l++) {
+            groups.push(coords.splice(0,list_len));
+        }
+        groups.push(coords);
+        
+        var groups_finished = 0;
 
-        // now gracefully create each pixel using utils.foreach
-        utils.foreach(coords, function(coord) {
-            var p = new_pixel(x, y, z, coord.w, coord.h, sender);
+        utils.foreach(groups, function(group, gindex) {
+            // now gracefully create each pixel using utils.foreach
+            utils.foreach(group, function(coord, index) {
+                var p = new_pixel(x, y, z, coord.w, coord.h, sender);
 
-            p.show();
+                p.show();
 
-            self.pixels.push(p);
+                var ind = index + (gindex * list_len);
 
-            default_frame_data.push(p.getColor());
-        },null,0.1,function() {
-            self.currentFrame = self.emptyFrame = new frame(default_frame_data);
+                self.pixels[ind] = p;
 
-            callback(self);        
-        }); 
+                default_frame_data[ind] = p.getColor();
+            },null,0.1,function() {
+                groups_finished++;
+
+                if(groups_finished >= group_size) {
+                    self.currentFrame = self.emptyFrame = new frame(default_frame_data);
+
+                    callback(self);        
+                }
+            }); 
+        });
     }
     
     return self;

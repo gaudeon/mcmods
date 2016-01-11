@@ -33,11 +33,9 @@ command('startstream', function (params, player) {
         new screen(x, y, z, width, height, orientation, player, function(theScreen) {
             s = theScreen;
 
-            echo(player, 'screen created');
+            echo(player, 'screen created, started streaming');
 
-            s.displayFromStream('http://localhost:8080/', function() {
-                echo(player, 'started streaming');
-            });
+            s.displayFromStream('http://localhost:8080/');
         });
     }
 }, ['x','y','z','width','height','orientation']);
@@ -46,5 +44,6 @@ command('stopstream', function (params, player) {
     if("undefined" !== typeof s) {
         s.hide();
         s = 0;
+        echo(player, 'stopping stream');
     }
 });
