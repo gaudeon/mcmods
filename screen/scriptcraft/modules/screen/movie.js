@@ -6,7 +6,7 @@
 var Movie = function () {
     var self     = {};
     self.errors  = [];
-    var frames   = [];
+    self.frames   = [];
 
     // validation and error handling
     self.error = function(msg) {
@@ -24,13 +24,13 @@ var Movie = function () {
             return;
         }
 
-        frames.push(frame);
+        self.frames.push(frame);
 
         return frame;
     };
 
     self.getFrames = function() {
-        return frames;
+        return self.frames;
     };
 
     // needed by screen display

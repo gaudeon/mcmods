@@ -11,10 +11,10 @@ var blocks = require('blocks'),
  *  z      - z coordinate of pixel
  */
 var Pixel = function (x, y, z, sender) {
-    var self     = {};
-    self.errors  = [];
-    var color    = 'black';
-    var is_hidden = true;
+    var self       = {};
+    self.errors    = [];
+    self.color     = 'black';
+    self.is_hidden = true;
 
     // validation and error handling
     self.error = function(msg) {
@@ -22,15 +22,15 @@ var Pixel = function (x, y, z, sender) {
         console.error('modules/pixel - ' + msg);
     };
 
-    if ("number" !== typeof x) {
+    if ("undefined" === typeof x) {
         self.error('x is required and should be a number');
     }
 
-    if ("number" !== typeof y) {
+    if ("undefined" === typeof y) {
         self.error('y is required and should be a number');
     }
 
-    if ("number" !== typeof z) {
+    if ("undefined" === typeof z) {
         self.error('z is required and should be a number');
     }
 
@@ -50,7 +50,7 @@ var Pixel = function (x, y, z, sender) {
 
         if (__plugin.canary) {
             var BlockType = Packages.net.canarymod.api.world.blocks.BlockType;
-            block.type = BlockType.fromId( blocks.wool[ color ] );
+            block.type = BlockType.fromId( blocks.wool[ self.color ] );
             block.update();
         }
         else if (__plugin.bukkit) {
@@ -58,7 +58,7 @@ var Pixel = function (x, y, z, sender) {
 
             var dye_colors = require('bukkit/dye-colors');
             var bkWool     = Packages.org.bukkit.material.Wool;
-            var wool_block = new bkWool( dye_colors[ color ] ); // New MaterialData
+            var wool_block = new bkWool( dye_colors[ self.color ] ); // New MaterialData
 
             // Get the BlockState
             var state = block.getState();
@@ -68,7 +68,7 @@ var Pixel = function (x, y, z, sender) {
             state.update();
         }
 
-        is_hidden = false;
+        self.is_hidden = false;
 
         return block;
     };
@@ -87,13 +87,13 @@ var Pixel = function (x, y, z, sender) {
             block.setType( Packages.org.bukkit.Material.AIR ); // Set the Material
         }
 
-        is_hidden = true;
+        self.is_hidden = true;
 
         return block;
     };
 
     // is_hidden accessor
-    self.isHidden = function() { return is_hidden; };
+    self.isHidden = function() { return self.is_hidden; };
 
     // set pixel color
     self.setColor = function(c) {
@@ -106,18 +106,18 @@ var Pixel = function (x, y, z, sender) {
             }
         }
 
-        color = c;
+        self.color = c;
 
-        if (! is_hidden) {
+        if (! self.is_hidden) {
             self.show();
         }
 
-        return color;
+        return self.color;
     };
 
     // get pixel color
     self.getColor = function() {
-        return color;
+        return self.color;
     };
 
     // convert ids to color words

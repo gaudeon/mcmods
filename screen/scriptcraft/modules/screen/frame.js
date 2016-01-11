@@ -6,7 +6,7 @@
 var Frame = function (data) {
     var self     = {};
     self.errors  = [];
-    var frame    = [];
+    self.frame   = [];
 
     // validation and error handling
     self.error = function(msg) {
@@ -22,22 +22,20 @@ var Frame = function (data) {
         if (self.errors.length > 0) {
             return self;
         }
-
-        self.frameData = function() {
-            return frame;
-        };
     }
 
     self.setFrameData = function(frame_array) {
         if ("object" === typeof frame_array && "undefined" !== typeof frame_array.push) {
-            frame = frame_array;
+            self.frame = frame_array;
         }
         else {
             self.error("Not a valid array");
         }
 
-        return frame;
+        return self.frame;
     };
+
+    self.frameData = function() { return self.frame };
 
     self.loadFromFile = function(file_name) {
         var File    = java.io.File;
@@ -54,17 +52,25 @@ var Frame = function (data) {
         return self.setFrame(new_array);
     };
 
-    self.loadFromHTTP = function(url) {
+    self.loadFromHTTP = function(url, callback) {
         var http = require('http/request');
+
+        if("function" !== typeof callback) callback = function() {};
 
         http.request({
             url: url,
             method: 'GET',
             params: {}
         }, function (code, content) {
-            var pixels = eval(content); // content should be an json array of wool color bin ids
+            if(code == 200) {
+                var pixels = eval(content); // content should be an json array of wool color bin ids
 
-            self.setFrameData(pixels);   
+                self.setFrameData(pixels);
+                callback(self);
+            }
+            else {
+                throw 'There was an error while attempting to connect to ' + url;
+            }
         });
     };
 

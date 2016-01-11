@@ -17,8 +17,8 @@ var server = module.exports.server = exports.server = express();
 server.use(body_parser.json());
 server.use(body_parser.urlencoded({ extended: true}));
 
-server.get('/', function(req, res) {
-    get_pic(function(pixels) {
+server.get('/:width/:height', function(req, res) {
+    get_pic(req.params.width, req.params.height, function(pixels) {
         res.json(pixels);
     });
 });
@@ -27,13 +27,11 @@ server.listen(PORT);
 console.log('Running on http://localhost:' + PORT);
 
 /* --- FUNCTIONS --- */
-function get_pic(callback) {
+function get_pic(width, height, callback) {
 
     if ('function' !== typeof callback) callback = function() {};
 
     var camcmd   = 'raspistill';
-    var width    = 64;
-    var height   = 48;
     var img_file = __dirname + '/.picam.jpg';
 
     // e.g. raspistill -w 64 -h 48 -o filename.jpg
