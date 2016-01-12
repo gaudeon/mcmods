@@ -30,6 +30,21 @@ command('startstream', function (params, player) {
         height      = ( "undefined" !== typeof params[4] ) ? new Number(params[4]) : 48; 
         orientation = ( "undefined" !== typeof params[5] && params[5].match(/^(x|z)$/) ) ? params[5] : 'x';
 
+        if(width % 16 != 0) {
+            echo(player, 'width must be evenly divisible by 16');
+            return;
+        } 
+
+        if(height % 16 != 0) {
+            echo(player, 'height must be evenly divisible by 16');
+            return;
+        } 
+
+        if(height / (width / 4) != 3) {
+            echo('width to height ratio must be 4:3');
+            return;
+        }
+
         new screen(x, y, z, width, height, orientation, player, function(theScreen) {
             s = theScreen;
 

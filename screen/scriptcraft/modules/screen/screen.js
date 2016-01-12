@@ -15,6 +15,12 @@ var blocks = require('blocks'),
  *  height      - screen height
  *  orientation - either along the 'x' or 'z' axis
  *  sender      - who is calling this
+ *
+ *  Valid resolutions:
+ *      64  x 48
+ *      128 x 96
+ *      192 x 144
+ *      256 x 192
  */
 var Screen = function (x, y, z, width, height, orientation, sender, callback) {
     if("function" !== typeof callback) callback = function() {}; // initialize callback if needed
@@ -30,9 +36,15 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
     // current displayed frame
     self.currentFrame = new frame();
 
+    // state tracking if a frame is currently loading
+    self.loadingFrame = false;
+
     // streaming options
     self.streamUrl    = '';
     self.isStreaming  = false;
+
+    // minimum value that width/height is evenly divisble by
+    var MINIMUM_MULTIPLE = height;
 
     self.error = function(msg) {
         self.errors.push(msg);
@@ -42,7 +54,7 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
     if ("undefined" === typeof x) {
         self.error('x is required and should be a number');
     }
-
+    
     if ("undefined" === typeof y) {
         self.error('y is required and should be a number');
     }
@@ -55,8 +67,20 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
         self.error('width is required and should be a number');
     }
 
+    if(width % 16 != 0) {
+        self.error('width must be evenly divisble by 16');
+    }
+
     if ("undefined" === typeof height) {
         self.error('height is required and should be a number');
+    }
+
+    if(height % 16 != 0) {
+        self.error('height must be evenly divisble by 16');
+    }
+
+    if(height / (width / 4) != 3) {
+        self.error('width to height ratio must be 4:3');
     }
 
     if ("undefined" === typeof orientation || (! orientation.toString().match(/-?x/) && ! orientation.toString().match(/-?z/))) {
@@ -78,8 +102,6 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
 
     // stream something on the screen
     self.displayFromStream = function(url, callback) {
-        self.clear();
-
         if("function" !== typeof callback) callback = function() {};
 
         self.streamUrl = url;
@@ -93,15 +115,22 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
     function loadFrameFromStream(callback) {
         var url = self.streamUrl + (self.streamUrl.match(/\/$/) ? '' : '/') + width + '/' + height;
 
-        new frame().loadFromHTTP(url, function(theFrame) {
-            self.display(theFrame);
-            callback(self); // call the callback every time a new frame is displayed
-            if(self.isStreaming) {
-                setTimeout(function() {
-                    loadFrameFromStream(callback);
-                }, 100);
-            }
-        }); 
+        if(! self.loadingFrame) {
+            self.loadingFrame = true;
+
+            new frame().loadFromHTTP(url, function(theFrame) {
+                self.display(theFrame, function() {
+                    self.loadingFrame = false;
+                    callback(self);
+                });
+            }); 
+        }
+
+        if(self.isStreaming) {
+            setTimeout(function() {
+             loadFrameFromStream(callback);
+            }, 100);
+        }
     }
 
     // turn off streaming
@@ -189,16 +218,43 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
             callback = function() {};
         }
 
-        utils.foreach(movie.getFrames(), displayFrame, null, 65, callback);
+        utils.foreach(movie.getFrames(), function(theFrame) {
+            displayFrame(theFrame, callback)
+        }, null, 65);
     }
 
-    function displayFrame(frame) {
+    function displayFrame(frame, callback) {
+        if ("function" !== typeof callback) callback = function() {};
+
         self.currentFrame = frame;
 
         var frameData = frame.frameData();
-        for (var f = 0; f < frameData.length; f++) {
-            self.pixelAt(f).setColor(frameData[f]);
+
+        // split the frameData into several parts
+        var list_len = Math.floor(frameData.length / MINIMUM_MULTIPLE);
+        var groups   = [];
+        for(var l = 0; l < MINIMUM_MULTIPLE - 1; l++) {
+            groups.push(frameData.splice(0,list_len));
         }
+        groups.push(frameData);
+
+        var groups_finished = 0;
+
+        utils.foreach(groups, function(group, gindex) {
+            // now gracefully create each pixel using utils.foreach
+            utils.foreach(group, function(color, index) {
+                var ind = index + (gindex * list_len);
+
+                self.pixelAt(ind).setColor(color);
+            },null,0.01,function() {
+
+                groups_finished++;
+
+                if(groups_finished >= MINIMUM_MULTIPLE) {
+                    callback(self);
+                }
+            });
+        });
     }
 
     function init() {
@@ -238,10 +294,9 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
             }
         }
         // split the list into several
-        var group_size = 8;
-        var list_len   = Math.floor(coords.length / group_size);
+        var list_len   = Math.floor(coords.length /  MINIMUM_MULTIPLE);
         var groups = [];
-        for(var l = 0; l < group_size - 1; l++) {
+        for(var l = 0; l <  MINIMUM_MULTIPLE - 1; l++) {
             groups.push(coords.splice(0,list_len));
         }
         groups.push(coords);
@@ -263,7 +318,7 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
             },null,0.1,function() {
                 groups_finished++;
 
-                if(groups_finished >= group_size) {
+                if(groups_finished >=  MINIMUM_MULTIPLE) {
                     self.currentFrame = self.emptyFrame = new frame(default_frame_data);
 
                     callback(self);        

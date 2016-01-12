@@ -35,7 +35,7 @@ var Frame = function (data) {
         return self.frame;
     };
 
-    self.frameData = function() { return self.frame };
+    self.frameData = function() { return self.frame.slice(0) }; // return a clone of frame
 
     self.loadFromFile = function(file_name) {
         var File    = java.io.File;
