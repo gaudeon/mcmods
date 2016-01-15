@@ -1,6 +1,7 @@
 var blocks = require('blocks'),
     pixel  = require('screen/pixel'),
     frame  = require('screen/frame'),
+    event  = require('screen/event'),
     utils  = require('utils'),
     debug  = require('debug');
 
@@ -28,6 +29,7 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
     var self          = {};
     self.errors       = [];
     self.pixels       = [];
+    self.event        = new event();
     self.is_hidden    = true;
 
     // a completely black frame - setup in init
@@ -46,59 +48,11 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
     // minimum value that width/height is evenly divisble by
     var MINIMUM_MULTIPLE = height;
 
+    // error handling
     self.error = function(msg) {
         self.errors.push(msg);
         console.error('modules/screen - ' + msg);
     };
-
-    if ("undefined" === typeof x) {
-        self.error('x is required and should be a number');
-    }
-    
-    if ("undefined" === typeof y) {
-        self.error('y is required and should be a number');
-    }
-
-    if ("undefined" === typeof z) {
-        self.error('z is required and should be a number');
-    }
-
-    if ("undefined" === typeof width) {
-        self.error('width is required and should be a number');
-    }
-
-    if(width % 16 != 0) {
-        self.error('width must be evenly divisble by 16');
-    }
-
-    if ("undefined" === typeof height) {
-        self.error('height is required and should be a number');
-    }
-
-    if(height % 16 != 0) {
-        self.error('height must be evenly divisble by 16');
-    }
-
-    if(height / (width / 4) != 3) {
-        self.error('width to height ratio must be 4:3');
-    }
-
-    if ("undefined" === typeof orientation || (! orientation.toString().match(/-?x/) && ! orientation.toString().match(/-?z/))) {
-        orientation = 'x'; // default orientation to x
-    }
-
-    if ("undefined" === typeof sender || "undefined" === typeof sender.getServer) {
-        self.error('sender is required');
-    }
-    else if ("undefined" === typeof sender.getServer) { // Make sure our sender is the correct kind of object
-        self.error('sender is not valid');
-    }
-
-    if (self.errors.length > 0) {
-        return self;
-    }
-
-    init();
 
     // stream something on the screen
     self.displayFromStream = function(url, callback) {
@@ -157,9 +111,7 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
 
     // display the screem
     self.show = function() {
-        for (var i = 0; i < self.pixels.length; i++) {
-            self.pixels[i].show();
-        }
+        self.event.trigger('show');
 
         self.is_hidden = false;
     }
@@ -168,9 +120,7 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
     self.hide = function() {
         self.stopStream();
 
-        for (var i = 0; i < self.pixels.length; i++) {
-            self.pixels[i].hide();
-        }
+        self.event.trigger('hide');
 
         self.is_hidden = true;
     };
@@ -212,6 +162,9 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
         self.display(self.emptyFrame);
     }
 
+    // get object typeof
+    self.typeof = function() { return 'Screen'; };
+
     // NOTE: when changing pixel color delay your loops for at least 65 milliseconds (use utils.foreach)
     function displayMovie(movie, callback) {
         if ("function" !== typeof callback) {
@@ -230,102 +183,104 @@ var Screen = function (x, y, z, width, height, orientation, sender, callback) {
 
         var frameData = frame.frameData();
 
-        // split the frameData into several parts
-        var list_len = Math.floor(frameData.length / MINIMUM_MULTIPLE);
-        var groups   = [];
-        for(var l = 0; l < MINIMUM_MULTIPLE - 1; l++) {
-            groups.push(frameData.splice(0,list_len));
-        }
-        groups.push(frameData);
+        self.event.trigger('display_frame', frameData);
 
-        var groups_finished = 0;
-
-        utils.foreach(groups, function(group, gindex) {
-            // now gracefully create each pixel using utils.foreach
-            utils.foreach(group, function(color, index) {
-                var ind = index + (gindex * list_len);
-
-                self.pixelAt(ind).setColor(color);
-            },null,0.01,function() {
-
-                groups_finished++;
-
-                if(groups_finished >= MINIMUM_MULTIPLE) {
-                    callback(self);
-                }
-            });
-        });
+        callback(self);
     }
 
-    function init() {
+    // initialize
+    function initialize() {
+        if ("undefined" === typeof x) {
+            self.error('x is required and should be a number');
+        }
+    
+        if ("undefined" === typeof y) {
+            self.error('y is required and should be a number');
+        }
+
+        if ("undefined" === typeof z) {
+            self.error('z is required and should be a number');
+        }
+
+        if ("undefined" === typeof width) {
+            self.error('width is required and should be a number');
+        }
+
+        if(width % 16 != 0) {
+            self.error('width must be evenly divisble by 16');
+        }
+
+        if ("undefined" === typeof height) {
+            self.error('height is required and should be a number');
+        }
+
+        if(height % 16 != 0) {
+            self.error('height must be evenly divisble by 16');
+        }
+
+        if(height / (width / 4) != 3) {
+            self.error('width to height ratio must be 4:3');
+        }
+
+        if ("undefined" === typeof orientation || (! orientation.toString().match(/-?x/) && ! orientation.toString().match(/-?z/))) {
+            orientation = 'x'; // default orientation to x
+        }
+
+        if ("undefined" === typeof sender || "undefined" === typeof sender.getServer) {
+            self.error('sender is required');
+        }
+        else if ("undefined" === typeof sender.getServer) { // Make sure our sender is the correct kind of object
+            self.error('sender is not valid');
+        }
+
+        if (self.errors.length > 0) {
+            return self;
+        }
+
         // generate a pixel creation function based on orientation so we don't run a switch statement for every pixel in the screen
         var new_pixel;
 
         switch (orientation) {
             case 'x':
-                new_pixel = function(x, y, z, w, h, sender) { return new pixel(x + w, y + h, z, sender); };
+                new_pixel = function(x, y, z, w, h, ind, sender) { return new pixel(x + w, y + h, z, ind, self, sender); };
                 break;
             case '-x':
-                new_pixel = function(x, y, z, w, h, sender) { return new pixel(x - w, y + h, z, sender); };
+                new_pixel = function(x, y, z, w, h, ind, sender) { return new pixel(x - w, y + h, z, ind, self, sender); };
                 break;
             case 'z':
-                new_pixel = function(x, y, z, w, h, sender) { return new pixel(x, y + h, z + w, sender); };
+                new_pixel = function(x, y, z, w, h, ind, sender) { return new pixel(x, y + h, z + w, ind, self, sender); };
                 break;
             case '-z':
-                new_pixel = function(x, y, z, w, h, sender) { return new pixel(x, y + h, z - w, sender); };
+                new_pixel = function(x, y, z, w, h, ind, sender) { return new pixel(x, y + h, z - w, ind, self, sender); };
                 break;
             default:
-                new_pixel = function(x, y, z, w, h, sender) { return new pixel(x + w, y + h, z, sender); };
+                new_pixel = function(x, y, z, w, h, ind, sender) { return new pixel(x + w, y + h, z, ind, self, sender); };
         }
 
         // default frame is setup as a black frame
         var default_frame_data = [];
 
-        // create the coordinates
-        var coords = [];
         // as the screen is created the position (0,0) is the top left of the screen
         for (var h = height - 1; h >= 0; h--) {
             for (var w = 0; w < width; w++) {
-                coords.push({'w':w, 'h':h});
+                var ind = self.pixels.length;
 
-                // set size of self.pixels and default_frame_data
-                self.pixels.push(0);
-                default_frame_data.push(0);
+                var p = new_pixel(x, y, z, w, h, ind, sender);
+
+                self.pixels.push(p);
+
+                default_frame_data.push(p.getColor());
             }
         }
-        // split the list into several
-        var list_len   = Math.floor(coords.length /  MINIMUM_MULTIPLE);
-        var groups = [];
-        for(var l = 0; l <  MINIMUM_MULTIPLE - 1; l++) {
-            groups.push(coords.splice(0,list_len));
-        }
-        groups.push(coords);
-        
-        var groups_finished = 0;
 
-        utils.foreach(groups, function(group, gindex) {
-            // now gracefully create each pixel using utils.foreach
-            utils.foreach(group, function(coord, index) {
-                var p = new_pixel(x, y, z, coord.w, coord.h, sender);
+        self.currentFrame = self.emptyFrame = new frame(default_frame_data);
 
-                p.show();
+        self.show();
 
-                var ind = index + (gindex * list_len);
-
-                self.pixels[ind] = p;
-
-                default_frame_data[ind] = p.getColor();
-            },null,0.1,function() {
-                groups_finished++;
-
-                if(groups_finished >=  MINIMUM_MULTIPLE) {
-                    self.currentFrame = self.emptyFrame = new frame(default_frame_data);
-
-                    callback(self);        
-                }
-            }); 
-        });
+        callback(self);
     }
+
+    initialize();
     
     return self;
 };

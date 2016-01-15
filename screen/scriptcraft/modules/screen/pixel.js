@@ -9,44 +9,20 @@ var blocks = require('blocks'),
  *  x      - x coordinate of pixel
  *  y      - y coordinate of pixel
  *  z      - z coordinate of pixel
+ *  frame_index - index of the pixel on screen
+ *  screen - screen object to enable event driven functionality
+ *  sender - player object
  */
-var Pixel = function (x, y, z, sender) {
+var Pixel = function (x, y, z, frame_index, screen, sender) {
     var self       = {};
     self.errors    = [];
     self.color     = 'black';
     self.is_hidden = true;
 
-    // validation and error handling
-    self.error = function(msg) {
-        self.errors.push(msg);
-        console.error('modules/pixel - ' + msg);
-    };
-
-    if ("undefined" === typeof x) {
-        self.error('x is required and should be a number');
-    }
-
-    if ("undefined" === typeof y) {
-        self.error('y is required and should be a number');
-    }
-
-    if ("undefined" === typeof z) {
-        self.error('z is required and should be a number');
-    }
-
-    if ("undefined" === typeof sender) {
-        self.error('sender is required');
-    }
-
-    if (self.errors.length > 0) {
-        return self;
-    }
 
     // pixel rendering
     self.show = function() {
-        var world = getWorld();
-
-        var block = world.getBlockAt( x, y, z );
+        var block = getBlock();
 
         if (__plugin.canary) {
             var BlockType = Packages.net.canarymod.api.world.blocks.BlockType;
@@ -75,9 +51,7 @@ var Pixel = function (x, y, z, sender) {
 
     // return the pixel back to air
     self.hide = function() {
-        var world = getWorld();
-
-        var block = world.getBlockAt( x, y, z );
+        var block = getBlock();
 
         if (__plugin.canary) {
             var BlockType = Packages.net.canarymod.api.world.blocks.BlockType;
@@ -120,6 +94,9 @@ var Pixel = function (x, y, z, sender) {
         return self.color;
     };
 
+    // get object type
+    self.typeof = function() { return 'Pixel'; };
+
     // convert ids to color words
     function id2color(id) {
         id = new Number(id.toString());
@@ -135,13 +112,77 @@ var Pixel = function (x, y, z, sender) {
 
     // get the world no matter the context
     function getWorld() {
-        if (sender.toString().match(/Player/)) {
-            return sender.world;
+        if ('undefined' === typeof self.world) {
+            if (sender.toString().match(/Player/)) {
+                self.world = sender.world;
+            }
+            else {
+                self.world = sender.getServer().getWorlds().get(0);
+            }
+        }
+
+        return self.world;
+    }
+
+    // get our block
+    function getBlock() {
+        if ('undefined' === typeof self.block) {
+            var world = getWorld();
+
+            self.block = world.getBlockAt( x, y, z );
+        }
+
+        return self.block;
+    }
+
+    // initialize
+    function initialize() {
+        // validation and error handling
+        self.error = function(msg) {
+            self.errors.push(msg);
+            console.error('modules/pixel - ' + msg);
+        };
+
+        if ("undefined" === typeof x) {
+            self.error('x is required and should be a number');
+        }
+
+        if ("undefined" === typeof y) {
+            self.error('y is required and should be a number');
+        }
+
+        if ("undefined" === typeof z) {
+            self.error('z is required and should be a number');
+        }
+
+        if ("undefined" === typeof sender) {
+            self.error('sender is required');
+        }
+
+        if ("object" === typeof screen && "function" === typeof screen.typeof && 'Screen' === screen.typeof()) {
+            screen.event.on('display_frame', function(ev) {
+                self.setColor(ev.data[frame_index]);
+            });
+
+            screen.event.on('show', function(ev) {
+                self.show();
+            });
+
+            screen.event.on('hide', function(ev) {
+                self.hide();
+            });
         }
         else {
-            return sender.getServer().getWorlds().get(0);
+            self.error('screen is required');
         }
+
+        if (self.errors.length > 0) {
+            return self;
+        }
+
     }
+
+    initialize(); // run it
 
     return self;
 };
