@@ -99,7 +99,7 @@ var Pixel = function (x, y, z, frame_index, screen, sender) {
 
     // convert ids to color words
     function id2color(id) {
-        id = new Number(id.toString());
+        id *= 1;
 
         for (var c in colors) {
             if (colors[c] == id) {

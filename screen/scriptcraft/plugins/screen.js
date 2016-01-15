@@ -58,7 +58,7 @@ command('startstream', function (params, player) {
 command('stopstream', function (params, player) {
     if("undefined" !== typeof s) {
         s.hide();
-        s = 0;
+        s = null;
         echo(player, 'stopping stream');
     }
 });
