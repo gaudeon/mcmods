@@ -1,5 +1,4 @@
 var World = require('zelda/world');
-var Room = require('zelda/room');
 var Drone = require('drone');
 
 /*
@@ -7,10 +6,6 @@ var Drone = require('drone');
  */
 command('zelda', function (params, player) {
     var w = new World(player);
-
-    new Room('overworld_h_8', player, function(error, r) {
-        r.render(0,50,0);
-    });
 });
 
 // debug command to clear a large chunk of blocks

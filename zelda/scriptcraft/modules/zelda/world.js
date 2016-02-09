@@ -1,3 +1,6 @@
+var Room  = require('zelda/room'),
+    rooms = require('zelda/rooms');
+
 /*
  * World
  *
@@ -12,7 +15,17 @@ var World = function (sender, callback) {
 
     function initialize() {
         var error;
-       
+
+        self.rooms = {};
+
+        for(var r = 0; r < rooms.length; r++) {
+            var room = rooms[r];
+
+            self.rooms[room.id] = new Room(room.id, sender, function(error, r) {
+                r.render(room.location.x, room.location.y, room.location.z);
+            });
+        }
+
         callback(error, self);
     }
 

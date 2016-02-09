@@ -28,7 +28,7 @@ var Room = function (id, sender, callback) {
 
         self.id = id;
 
-        self.data = require('zelda/room/' + id);
+        require('zelda/room/' + id);
 
         callback(null, self);
     }

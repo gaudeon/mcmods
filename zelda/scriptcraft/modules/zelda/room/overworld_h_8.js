@@ -1,10 +1,15 @@
 // Drone instructions to build this room
-var config = require('zelda/config'),
-    blocks = require('blocks'),
-    Drone  = require('drone');
+var config   = require('zelda/config'),
+    blocks   = require('blocks'),
+    entities = require('entities'),
+    items    = require('items'),
+    spawn    = require('zelda/spawn'),
+    utils    = require('utils');
 
 function overworld_h_8() {
-    this
+    var drone = this;
+
+    drone
         // checkpoint the start of the room
         .chkpt('room')
 
@@ -81,75 +86,56 @@ function overworld_h_8() {
         .box0(blocks.dirt,config.ROOM_WIDTH - 4, config.ROOM_HEIGHT - 1, config.ROOM_DEPTH - 4)
         .box(blocks.dirt,config.ROOM_WIDTH - 4, 1, config.ROOM_DEPTH - 4)
 
-        // make stairs to the cave
+        // make ladder to the cave
         .move('room')
         .up(3)
         .fwd(9)
         .right(4)
+        .down(12)
+        .box(blocks.air, 1, 14, 1)
+        .ladder(12)
 
-        .box(blocks.air, 1, 2, 1)
-        .down()
-        .box(blocks.stairs.stone + ':0') // left
-        .left()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':0')
-        .left()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':3') // toward
+        // make the torches and chest in cave
         .back()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':1') // right
+        .box(blocks.air, 1, 2, 1)
+        .back(3)
+        .box(blocks.torch)
+        .right(3)
+        .box(blocks.chest + ':1')
         .right()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':1')
-        .right()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':1')
-        .right()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':1')
-        .right()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':1')
-        .right()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':1')
-        .right()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':1')
-        .right()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':1')
-        .right()
-
-        .box(blocks.air, 1, 3, 1)
-        .down()
-        .box(blocks.stairs.stone + ':1')
-        .right()
-
-        .box(blocks.air, 1, 3, 1);
-
-        // TODO: Add lighting, villager, sign, chest with wooden sword
+        .box(blocks.chest + ':1')
+        .chkpt('chest')
+        .right(3)
+        .box(blocks.torch)
+        .left(2)
+        .back(2)
+        .box(blocks.fence.oak)
+        .fwd()
+        .box(blocks.fence.oak)
+        .left()
+        .box(blocks.fence.oak)
+        .left()
+        .box(blocks.fence.oak)
+        .left()
+        .box(blocks.fence.oak)
+        .back()
+        .box(blocks.fence.oak)
+        .fwd()
+        .up()
+        .chkpt('sign')
+        .turn(2)
+        .signpost(["It's dangerous", "to go alone!", "", "Take this."])
+        .turn(2)
+        .then(function() {
+            drone.move('chest');
+            var chest = utils.blockAt( drone.getLocation() ).getState();
+            chest.getInventory().addItem(items.woodSword(1));
+            chest.update(true);
+        })
+        .then(function() {
+            drone.move('chest').back(2);
+            var villager = spawn( 'villager', drone.getLocation() );
+        });
 }
 
 Drone.extend('overworld_h_8', overworld_h_8);
