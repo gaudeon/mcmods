@@ -1,9 +1,10 @@
-var blocks = require('blocks');
-var Drone  = require('drone');
+var blocks = require('blocks'),
+    Drone  = require('drone'),
+    Map    = require('traveling_salesman/map');
 
 /*
  * TravelingSalesman
- * 
+ *
  * Description: Setup and execute a traveling salesman experiment
  *
  * Parameters:
@@ -15,7 +16,7 @@ var TravelingSalesman = function (sender, callback) {
 
     var self = {};
 
-    function initialize() {
+    function _initialize() {
         var error;
 
         if("undefined" === typeof sender.getLocation) {
@@ -23,14 +24,13 @@ var TravelingSalesman = function (sender, callback) {
             return;
         }
 
-        var drone = new Drone(sender);
-
-        drone.box(blocks.obsidian); 
+        self.drone = new Drone(sender);
+        self.map   = new Map(sender);
 
         callback(error, self);
     }
 
-    initialize();
+    _initialize();
 
     return self;
 };
