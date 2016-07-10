@@ -11,7 +11,7 @@ GITDIR=""
 
 # List of files to cp from the minecraft server to the git repo
 FILES[0]="/scriptcraft/modules/traveling_salesman/"
-FILES[7]="/scriptcraft/plugins/traveling_salesman/"
+FILES[2]="/scriptcraft/plugins/traveling_salesman/"
 
 
 if [ -d $MCDIR/scriptcraft ] && [ -d $GITDIR/scriptcraft ]; then

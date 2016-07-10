@@ -1,3 +1,6 @@
+var blocks = require('blocks');
+var Drone  = require('drone');
+
 /*
  * TravelingSalesman
  * 
@@ -14,6 +17,15 @@ var TravelingSalesman = function (sender, callback) {
 
     function initialize() {
         var error;
+
+        if("undefined" === typeof sender.getLocation) {
+            console.log('This command must be ran by an actual player');
+            return;
+        }
+
+        var drone = new Drone(sender);
+
+        drone.box(blocks.obsidian); 
 
         callback(error, self);
     }
