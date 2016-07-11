@@ -10,5 +10,5 @@ A ScriptCraft mod displaying a pixelized wool screen
 # zelda/
 An unfinished proof of concept at using ScriptCrafts drone to build the world from the Legend of Zelda classic game.
 
-# traveling_salesman
+# traveling_salesman/
 A simple replica of the traveling salesman problem in minecraft
