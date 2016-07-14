@@ -1,4 +1,5 @@
 var Map      = require('traveling_salesman/map'),
+    Path     = require('traveling_salesman/path'),
     Renderer = require('traveling_salesman/renderer');
 
 /*
@@ -17,9 +18,7 @@ var TravelingSalesman = function (sender, callback) {
 
     var __init_ran = false;
 
-    var __map;
-
-    var __renderer;
+    var __map, __path, __renderer;;
 
     function _initialize() {
         var error;
@@ -50,19 +49,29 @@ var TravelingSalesman = function (sender, callback) {
         new Map(sender, function(error, theMap) {
             if (! error) {
                 __map = theMap;
-                new Renderer(sender, function(error, theRenderer) {
+
+                new Path(sender, function(error, thePath) {
                     if (! error) {
-                        __renderer = theRenderer;
+                        __path = thePath;
 
-                        __init_ran = true;
+                        new Renderer(sender, function(error, theRenderer) {
+                            if (! error) {
+                                __renderer = theRenderer;
 
-                        self.player.chat('Map creation started.');
+                                __init_ran = true;
 
-                        __renderer.renderMap( __map.getFlatMap(), undefined, function() {
-                            self.player.chat('Map creation finished.');
+                                self.player.chat('Map creation started.');
+
+                                __renderer.renderMap( __map.getFlatMap(), undefined, function() {
+                                    self.player.chat('Map creation finished.');
+                                });
+
+                                callback(error, self);
+                            }
+                            else {
+                                callback(error, self);
+                            }
                         });
-
-                        callback(error, self);
                     }
                     else {
                         callback(error, self);
