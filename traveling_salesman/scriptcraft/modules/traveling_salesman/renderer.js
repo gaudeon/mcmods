@@ -59,10 +59,19 @@ var TravelingSalesmanRenderer = function (sender, callback) {
         }, undefined, 4, function() { callback(undefined, self); });
     };
 
+
+    self.renderPaths = function(paths, callback) {
+        if("function" !== typeof callback) callback = function() {}; // callback should always be a function
+
+        utils.foreach(paths, function(path) {
+            self.drawLine(path.p1, path.p2);
+        }, undefined, 4, function() { callback(undefined, self); });
+    }
+
     self.drawPoint = function(loc) {
         var color = loc.point % 16 == 0 ? 15 : loc.point % 16 - 1; // repeat colors
 
-        __drone.box( blocks.stained_glass[ __colors[color] ] );
+        __drone.box( blocks.wool[ __colors[color] ] );
 
         var block = self.player.world.getBlockAt( __drone.x, __drone.y, __drone.z );
         var state = block.getState();
@@ -79,7 +88,14 @@ var TravelingSalesmanRenderer = function (sender, callback) {
         state.update();
     };
 
-    self.drawLine = function(point_1, point_2) {
+    self.drawLine = function(point_1, point_2, block_type) {
+        if ("undefined" === typeof block_type) {
+            block_type = blocks.stained_glass[ 'white' ];
+        }
+
+        console.log(point_1.toString());
+        console.log(point_2.toString());
+
         // determine direction on each axis
         var x_mod = point_1.x > point_2.x ? -1 : point_1.x < point_2.x ? 1 : 0;
         var y_mod = point_1.y > point_2.y ? -1 : point_1.y < point_2.y ? 1 : 0;
@@ -120,18 +136,20 @@ var TravelingSalesmanRenderer = function (sender, callback) {
             __drone.y = __start_location.y + point.y;
             __drone.z = __start_location.z + point.z;
 
-            self.drawLinePoint();
+            self.drawLinePoint(block_type);
         }, undefined, 4);
     };
 
-    self.drawLinePoint = function() {
-        __drone.box( blocks.redstone );
+    self.drawLinePoint = function(block_type) {
+        __drone.box( block_type );
 
         var block = self.player.world.getBlockAt( __drone.x, __drone.y, __drone.z );
         var state = block.getState();
 
         state.update();
     };
+
+    self.getColors = function() { return __colors; };
 
     // call constructor
     _initialize();

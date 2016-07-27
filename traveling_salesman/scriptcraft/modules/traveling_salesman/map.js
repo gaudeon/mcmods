@@ -1,3 +1,6 @@
+var config = require('traveling_salesman/config'),
+    utils  = require('traveling_salesman/utils');
+
 /*
  * TravelingSalesmanMap
  *
@@ -7,18 +10,18 @@
  *  sender      - who is calling this
  *  callback    - callback called when initialization is complete
  */
-var TravelingSalesmanMap = function (sender, callback) {
+var TravelingSalesmanMap = function (points, map_size, sender, callback) {
     if("function" !== typeof callback) callback = function() {}; // callback should always be a function
 
     var self = {};
 
     var __range = {
-        x: 5,
-        y: 5,
-        z: 5
+        x: map_size,
+        y: map_size,
+        z: map_size
     };
 
-    var __points_to_generate = 4;
+    var __points_to_generate = points;
 
     var __map;
     var __map_flat;
@@ -60,7 +63,7 @@ var TravelingSalesmanMap = function (sender, callback) {
             var y = _getRandomInt(0, __range.y);
             var z = _getRandomInt(0, __range.z);
 
-            if (__map[x][y][z] === 1) {
+            if (! _isValidPoint(x,y,z)) {
                 continue;
             }
 
@@ -81,6 +84,21 @@ var TravelingSalesmanMap = function (sender, callback) {
 
     function _getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    function _isValidPoint(x,y,z) {
+        if (__map[x][y][z] === 1) {
+            return false;
+        }
+
+        // points have to be a certain distance apart
+        for (var p = 0; p < __points.length; p++) {
+            if (utils.distance(x,y,z,__points[p].x,__points[p].y,__points[p].z) < Math.ceil(config.minimum_map_size / 2) + 1) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // accessors for generated data

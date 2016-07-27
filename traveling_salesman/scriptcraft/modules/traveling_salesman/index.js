@@ -1,6 +1,8 @@
-var Map      = require('traveling_salesman/map'),
+var config   = require('traveling_salesman/config'),
+    Map      = require('traveling_salesman/map'),
     Path     = require('traveling_salesman/path'),
-    Renderer = require('traveling_salesman/renderer');
+    Renderer = require('traveling_salesman/renderer'),
+    utils    = require('traveling_salesman/utils');
 
 /*
  * TravelingSalesman
@@ -18,7 +20,7 @@ var TravelingSalesman = function (sender, callback) {
 
     var __init_ran = false;
 
-    var __map, __path, __renderer;;
+    var __map, __path, __renderer;
 
     function _initialize() {
         var error;
@@ -37,20 +39,36 @@ var TravelingSalesman = function (sender, callback) {
         return true;
     }
 
-    self.init = function(callback) {
+    self.init = function(points, map_size, callback) {
         if("function" !== typeof callback) callback = function() {}; // callback should always be a function
 
         var error;
+
+        if ( "number" !== typeof points || points < config.minimum_points ) {
+            error = "Number of points specific is invalid. Must be a minimum of 2";
+
+            callback(error,self);
+
+            return;
+        }
+
+        if ( "number" !== typeof map_size || map_size < config.minimum_map_size ) {
+            error = "Number of points specific is invalid. Must be a minimum of 5";
+
+            callback(error,self);
+
+            return;
+        }
 
         if (__init_ran) {
             self.clear(); // clear out map if we are running init again
         }
 
-        new Map(sender, function(error, theMap) {
+        new Map(points, map_size, sender, function(error, theMap) {
             if (! error) {
                 __map = theMap;
 
-                new Path(sender, function(error, thePath) {
+                new Path(__map, sender, function(error, thePath) {
                     if (! error) {
                         __path = thePath;
 
@@ -63,7 +81,9 @@ var TravelingSalesman = function (sender, callback) {
                                 self.player.chat('Map creation started.');
 
                                 __renderer.renderMap( __map.getFlatMap(), undefined, function() {
-                                    self.player.chat('Map creation finished.');
+                                    __renderer.renderPaths( __path.getPaths(), function() {
+                                        self.player.chat('Map creation finished.');
+                                    });
                                 });
 
                                 callback(error, self);
@@ -140,6 +160,39 @@ var TravelingSalesman = function (sender, callback) {
         }
 
         callback(error, self);
+    };
+
+    self.print = function(state, callback) {
+        switch (state) {
+            case 'colors':
+                var colors = __renderer.getColors();
+
+                for (var c = 0; c < colors.length; c++) {
+                    self.player.chat(c + ': ' + colors[c]);
+                }
+
+                break;
+            case 'points':
+                var points = __map.getPoints();
+                var colors = __renderer.getColors();
+
+                for (var p = 0; p < points.length; p++) {
+                    self.player.chat(p + ': ' + points[p].x + '/' + points[p].y + '/' + points[p].z + ' ' + colors[p]);
+                }
+
+                break;
+            case 'paths':
+                var paths  = __path.getPaths();
+                var colors = __renderer.getColors();
+
+                for (var p = 0; p < paths.length; p++) {
+                    self.player.chat(paths[p].p1_index + ' (' + colors[paths[p].p1_index] + ') -> ' + paths[p].p2_index + ' (' + colors[paths[p].p2_index] + ')');
+                }
+
+                break;
+            default:
+                self.player.chat(state + ' not found');
+        }
     };
 
     _initialize();
