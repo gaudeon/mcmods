@@ -33,17 +33,19 @@ command('ts', function (params, player) {
             ts.init(points, map_size);
 
             break;
+
         case 'path':
             var point_1 = params[1];
-            var point_2 = params[2];
 
-            ts.path(point_1, point_2);
+            ts.path(point_1);
 
             break;
+
         case 'reset':
             ts.reset();
 
             break;
+
         case 'clear':
             ts.clear();
 
@@ -51,6 +53,11 @@ command('ts', function (params, player) {
 
         case 'print':
             ts.print(params[1]);
+
+            break;
+
+        case 'empty':
+            ts.empty();
 
             break;
     }

@@ -64,6 +64,9 @@ var TravelingSalesman = function (sender, callback) {
             self.clear(); // clear out map if we are running init again
         }
 
+        var time_start = utils.time();
+        self.player.chat('Init started.');
+
         new Map(points, map_size, sender, function(error, theMap) {
             if (! error) {
                 __map = theMap;
@@ -78,12 +81,10 @@ var TravelingSalesman = function (sender, callback) {
 
                                 __init_ran = true;
 
-                                self.player.chat('Map creation started.');
 
-                                __renderer.renderMap( __map.getFlatMap(), undefined, function() {
-                                    __renderer.renderPaths( __path.getPaths(), function() {
-                                        self.player.chat('Map creation finished.');
-                                    });
+                                __renderer.renderPoints( __map.getPoints(), function() {
+                                    var time_diff = (utils.time() - time_start) / 1000;
+                                    self.player.chat('Init finished. ' + time_diff + ' seconds');
                                 });
 
                                 callback(error, self);
@@ -104,24 +105,27 @@ var TravelingSalesman = function (sender, callback) {
         });
     };
 
-    self.path = function(src, dest, callback) {
+    self.path = function(p1, callback) {
         if("function" !== typeof callback) callback = function() {}; // callback should always be a function
 
         var error;
 
         if (_checkForInit()) {
-            var p1     = src - 1;
-            var p2     = dest - 1;
             var points = __map.getPoints();
 
-            if (p1 != p2 && "undefined" !== typeof points[p1] && "undefined" !== typeof points[p2]) {
-                __renderer.drawLine(points[p1], points[p2]);
+            if ("undefined" !== typeof points[p1]) {
+                __renderer.clearPaths( __path.getPaths(), function() { // clear old paths first
+                    var time_start = utils.time();
+                    var paths      = __path.bestPath(p1);
+                    var time_diff  = (utils.time() - time_start) / 1000;
 
-                // Todo, Create another object for calculating shortest path (path.js) and have it return the list of point to point travels so lines can be draw between each
+                    __renderer.renderPaths( paths, function() {
+                        self.player.chat('Pathing finished. ' + time_diff + ' seconds');
+                    });
+                });
             }
             else {
-                self.player.chat('Either one, or both, of the points provided is invalid.');
-                self.player.chat('Make sure both points are unique and valid. (point id\'s starts at 1)');
+                self.player.chat('Point provided is invalid. Note: point id\'s start at 0.');
             }
         }
 
@@ -134,10 +138,14 @@ var TravelingSalesman = function (sender, callback) {
         var error;
 
         if (_checkForInit()) {
-            self.player.chat('Map creation started.');
+            var time_start = utils.time();
+            self.player.chat('Reset started.');
 
-            __renderer.renderMap( __map.getFlatMap(), undefined, function() {
-                self.player.chat('Map creation finished.');
+            __renderer.clearPaths( __path.getPaths(), function() { // clear old paths first
+                __renderer.renderPoints( __map.getPoints(), function() {
+                    var time_diff = (utils.time() - time_start) / 1000;
+                    self.player.chat('Reset finished. ' + time_diff + ' seconds');
+                });
             });
         }
 
@@ -150,10 +158,14 @@ var TravelingSalesman = function (sender, callback) {
         var error;
 
         if (_checkForInit()) {
-            self.player.chat('Map removal started.');
+            var time_start = utils.time();
+            self.player.chat('Clear started.');
 
-            __renderer.renderMap( __map.getFlatMap(), true, function() {
-                self.player.chat('Map removal finished.');
+            __renderer.clearPaths( __path.getPaths(), function() { // clear old paths first
+                __renderer.clearPoints( __map.getPoints(), function() {
+                    var time_diff = (utils.time() - time_start) / 1000;
+                    self.player.chat('Clear finished. ' + time_diff + ' seconds');
+                });
             });
 
             __init_ran = false;
@@ -185,14 +197,39 @@ var TravelingSalesman = function (sender, callback) {
                 var paths  = __path.getPaths();
                 var colors = __renderer.getColors();
 
+                var total_distance  = 0;
+
                 for (var p = 0; p < paths.length; p++) {
-                    self.player.chat(paths[p].p1_index + ' (' + colors[paths[p].p1_index] + ') -> ' + paths[p].p2_index + ' (' + colors[paths[p].p2_index] + ')');
+                    self.player.chat(paths[p].p1_index + ' (' + colors[paths[p].p1_index] + ') -> ' + paths[p].p2_index + ' (' + colors[paths[p].p2_index] + ') = ' + paths[p].distance + ' blocks');
+                    total_distance += paths[p].distance;
                 }
+
+                self.player.chat('Total Distance: ' + total_distance);
 
                 break;
             default:
                 self.player.chat(state + ' not found');
         }
+    };
+
+    self.empty = function(callback) {
+        if("function" !== typeof callback) callback = function() {}; // callback should always be a function
+
+        var error;
+
+        if (_checkForInit()) {
+            var time_start = utils.time();
+            self.player.chat('Empty started.');
+
+            __renderer.renderMap( __map.getFlatMap(), true, function() {
+                var time_diff = (utils.time() - time_start) / 1000;
+                self.player.chat('Empty finished. ' + time_diff + ' seconds');
+            });
+
+            __init_ran = false;
+        }
+
+        callback(error, self);
     };
 
     _initialize();

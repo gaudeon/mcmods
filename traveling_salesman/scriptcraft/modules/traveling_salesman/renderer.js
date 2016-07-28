@@ -59,12 +59,43 @@ var TravelingSalesmanRenderer = function (sender, callback) {
         }, undefined, 4, function() { callback(undefined, self); });
     };
 
+    self.renderPoints = function(points, callback) {
+        if("function" !== typeof callback) callback = function() {}; // callback should always be a function
+
+        utils.foreach(points, function(point) {
+            __drone.x = __start_location.x + point.x;
+            __drone.y = __start_location.y + point.y;
+            __drone.z = __start_location.z + point.z;
+
+            self.drawPoint(point);
+        }, undefined, 4, function() { callback(undefined, self); });
+    }
+
+    self.clearPoints = function(points, callback) {
+        if("function" !== typeof callback) callback = function() {}; // callback should always be a function
+
+        utils.foreach(points, function(point) {
+            __drone.x = __start_location.x + point.x;
+            __drone.y = __start_location.y + point.y;
+            __drone.z = __start_location.z + point.z;
+
+            self.clearPoint(point);
+        }, undefined, 4, function() { callback(undefined, self); });
+    }
 
     self.renderPaths = function(paths, callback) {
         if("function" !== typeof callback) callback = function() {}; // callback should always be a function
 
         utils.foreach(paths, function(path) {
             self.drawLine(path.p1, path.p2);
+        }, undefined, 4, function() { callback(undefined, self); });
+    }
+
+    self.clearPaths = function(paths, callback) {
+        if("function" !== typeof callback) callback = function() {}; // callback should always be a function
+
+        utils.foreach(paths, function(path) {
+            self.drawLine(path.p1, path.p2, blocks.air);
         }, undefined, 4, function() { callback(undefined, self); });
     }
 
@@ -92,9 +123,6 @@ var TravelingSalesmanRenderer = function (sender, callback) {
         if ("undefined" === typeof block_type) {
             block_type = blocks.stained_glass[ 'white' ];
         }
-
-        console.log(point_1.toString());
-        console.log(point_2.toString());
 
         // determine direction on each axis
         var x_mod = point_1.x > point_2.x ? -1 : point_1.x < point_2.x ? 1 : 0;
