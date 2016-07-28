@@ -59,6 +59,20 @@ var TravelingSalesmanRenderer = function (sender, callback) {
         }, undefined, 4, function() { callback(undefined, self); });
     };
 
+    self.clearMap = function(map, callback) {
+        if("function" !== typeof callback) callback = function() {}; // callback should always be a function
+
+        __drone.x = __start_location.x;
+        __drone.y = __start_location.y;
+        __drone.z = __start_location.z;
+
+        var range = map.getRange();
+
+        __drone.box(blocks.air, range.x, range.y, range.z);
+        
+        callback(undefined, self);
+    };
+
     self.renderPoints = function(points, callback) {
         if("function" !== typeof callback) callback = function() {}; // callback should always be a function
 

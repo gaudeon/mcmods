@@ -111,16 +111,19 @@ var TravelingSalesman = function (sender, callback) {
         var error;
 
         if (_checkForInit()) {
+            var time_start = utils.time();
+            self.player.chat('Pathing started.');
             var points = __map.getPoints();
 
             if ("undefined" !== typeof points[p1]) {
                 __renderer.clearPaths( __path.getPaths(), function() { // clear old paths first
-                    var time_start = utils.time();
+                    var path_time_start = utils.time();
                     var paths      = __path.bestPath(p1);
-                    var time_diff  = (utils.time() - time_start) / 1000;
+                    var path_time_diff  = (utils.time() - path_time_start) / 1000;
 
                     __renderer.renderPaths( paths, function() {
-                        self.player.chat('Pathing finished. ' + time_diff + ' seconds');
+                        var time_diff  = (utils.time() - time_start) / 1000;
+                        self.player.chat('Pathing finished. Algorithm - ' + path_time_diff + ' seconds. Algorithm and rendering - ' + time_diff + ' seconds.');
                     });
                 });
             }
@@ -189,7 +192,9 @@ var TravelingSalesman = function (sender, callback) {
                 var colors = __renderer.getColors();
 
                 for (var p = 0; p < points.length; p++) {
-                    self.player.chat(p + ': ' + points[p].x + '/' + points[p].y + '/' + points[p].z + ' ' + colors[p]);
+                    var color = p % 16 == 0 ? 15 : p % 16 - 1; // repeat colors
+
+                    self.player.chat(p + ': ' + points[p].x + '/' + points[p].y + '/' + points[p].z + ' ' + colors[color]);
                 }
 
                 break;
@@ -200,7 +205,11 @@ var TravelingSalesman = function (sender, callback) {
                 var total_distance  = 0;
 
                 for (var p = 0; p < paths.length; p++) {
-                    self.player.chat(paths[p].p1_index + ' (' + colors[paths[p].p1_index] + ') -> ' + paths[p].p2_index + ' (' + colors[paths[p].p2_index] + ') = ' + paths[p].distance + ' blocks');
+                    var color1 = paths[p].p1_index % 16 == 0 ? 15 : paths[p].p1_index % 16 - 1; // repeat colors
+                    var color2 = paths[p].p2_index % 16 == 0 ? 15 : paths[p].p2_index % 16 - 1; // repeat colors
+
+                    self.player.chat(paths[p].p1_index + ' (' + colors[color1] + ') -> ' + paths[p].p2_index + ' (' + colors[color2] + ') = ' + paths[p].distance + ' blocks');
+
                     total_distance += paths[p].distance;
                 }
 
@@ -221,7 +230,7 @@ var TravelingSalesman = function (sender, callback) {
             var time_start = utils.time();
             self.player.chat('Empty started.');
 
-            __renderer.renderMap( __map.getFlatMap(), true, function() {
+            __renderer.clearMap( __map, function() {
                 var time_diff = (utils.time() - time_start) / 1000;
                 self.player.chat('Empty finished. ' + time_diff + ' seconds');
             });
